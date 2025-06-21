@@ -18,9 +18,9 @@ contract aircon {
     Power public airconPower = Power.medium;
 
     event ChangedAirconTemp(int temp, string message);
-    event ChangeAirconStatus(Status airconStatus, string message);
-    event ChangeAirconMod(Mod airconMod, string message);
-    event ChangeAirconPower(Power airconPower, string message);
+    event ChangeAirconStatus(string airconStatus, string message);
+    event ChangeAirconMod(string airconMod, string message);
+    event ChangeAirconPower(string airconPower, string message);
 
     constructor(address _owner, uint _airconCost, int _defaultAirconTemp) {
         owner = _owner;
@@ -48,6 +48,16 @@ contract aircon {
         }
     }
 
+    function sendEtherToOwner() public payable onlyOwner {
+        uint256 gasLimit = 21000;
+        uint256 fee = gasLimit * tx.gasprice; 
+        uint256 amountToSend = address(this).balance - fee;
+
+        (bool success, ) = owner.call{value: amountToSend, gas: gasLimit}("");
+        require(success, "Transfer failed");
+    }
+
+
     function changeDefaultTemp(int _newDefaultTemp) public onlyOwner {
         defaultAirconTemp = _newDefaultTemp;
     }
@@ -61,14 +71,14 @@ contract aircon {
             require(Status.on != airconStatus, "aircon already on");
             airconStatus = Status.on;
 
-            emit ChangeAirconStatus(airconStatus, _message);
+            emit ChangeAirconStatus("on", _message);
         }
         else if (Status.off == _status) {
             require(Status.off != airconStatus, "aircon already off");
             airconStatus = Status.off;
             airconTemp = defaultAirconTemp;
 
-            emit ChangeAirconStatus(airconStatus, _message);
+            emit ChangeAirconStatus("off", _message);
         }
         else {
             revert("Unknown Mod");
@@ -93,12 +103,12 @@ contract aircon {
         if (Mod.ice == _mod)  {
             require(Mod.ice != airconMod, "aircon already ice mod");
             airconMod = Mod.ice;
-            emit ChangeAirconMod(airconMod, _message);
+            emit ChangeAirconMod("ice", _message);
         }
         else if (Mod.hot == _mod) {
             require(Mod.hot != airconMod, "aircon already hot mod");
             airconMod = Mod.hot;
-            emit ChangeAirconMod(airconMod, _message);
+            emit ChangeAirconMod("hot", _message);
         }
         else {
             revert("Unknown Mod");
@@ -109,17 +119,17 @@ contract aircon {
         if (Power.weak == _power) {
             require(airconPower != Power.weak, "aircon power already weak");
             airconPower = Power.weak;
-            emit ChangeAirconPower(airconPower, _message);
+            emit ChangeAirconPower("weak", _message);
         }
         else if (Power.medium == _power) {
             require(airconPower != Power.medium, "aircon power already medium");
             airconPower = Power.medium;
-            emit ChangeAirconPower(airconPower, _message);
+            emit ChangeAirconPower("medium", _message);
         }
         else if (Power.strong == _power) {
             require(airconPower != Power.strong, "aircon power already strong");
             airconPower = Power.strong;
-            emit ChangeAirconPower(airconPower, _message);
+            emit ChangeAirconPower("power", _message);
         }
         else {
             revert("Unknown Mod");
